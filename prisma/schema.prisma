@@ -1,0 +1,100 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model Workspace {
+  id        String     @id @default(cuid())
+  name      String     @default("My Workspace")
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  pages     Page[]
+  tasks     Task[]
+  tags      Tag[]
+  databases Database[]
+}
+
+model Page {
+  id          String    @id @default(cuid())
+  title       String
+  icon        String    @default("📄")
+  cover       String?
+  content     Json
+  plainText   String    @default("")
+  favorite    Boolean   @default(false)
+  position    Int       @default(0)
+  revision    Int       @default(0)
+  workspaceId String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  parentId    String?
+  parent      Page?     @relation("PageTree", fields: [parentId], references: [id], onDelete: Cascade)
+  children    Page[]    @relation("PageTree")
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([workspaceId, parentId, position])
+  @@index([workspaceId, updatedAt])
+  @@index([workspaceId, favorite])
+}
+
+model Database {
+  id          String    @id @default(cuid())
+  name        String
+  description String    @default("")
+  icon        String    @default("📋")
+  workspaceId String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  tasks       Task[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([workspaceId])
+}
+
+enum TaskStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  COMPLETED
+}
+
+enum TaskPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+model Task {
+  id          String       @id @default(cuid())
+  title       String
+  description String       @default("")
+  status      TaskStatus   @default(NOT_STARTED)
+  priority    TaskPriority @default(MEDIUM)
+  dueDate     String?
+  completedAt DateTime?
+  workspaceId String
+  workspace   Workspace    @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  databaseId  String?
+  database    Database?    @relation(fields: [databaseId], references: [id], onDelete: SetNull)
+  tags        Tag[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@index([workspaceId, status, dueDate])
+  @@index([workspaceId, updatedAt])
+  @@index([databaseId])
+}
+
+model Tag {
+  id          String    @id @default(cuid())
+  name        String
+  workspaceId String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  tasks       Task[]
+
+  @@unique([workspaceId, name])
+}
