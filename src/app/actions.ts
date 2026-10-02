@@ -9,6 +9,8 @@ import { getWorkspace } from "@/lib/server/workspace";
 import { seedWorkspace } from "@/lib/server/seed";
 import { databaseSchema, workspaceSchema } from "@/lib/validation";
 import type { ActionResult } from "@/lib/types";
+import { getCurrentUser } from "@/lib/server/current-user";
+import { WorkspaceError } from "@/lib/server/errors";
 
 async function execute<T>(work: () => Promise<T>): Promise<ActionResult<T>> {
   try {
@@ -31,7 +33,7 @@ async function execute<T>(work: () => Promise<T>): Promise<ActionResult<T>> {
     return {
       ok: false,
       error:
-        error instanceof Error
+        error instanceof WorkspaceError
           ? error.message
           : "Unable to save. Please try again.",
     };
@@ -87,7 +89,8 @@ export async function updateWorkspaceAction(input: unknown) {
 export async function resetWorkspaceAction(confirmation: unknown) {
   return execute(async () => {
     z.literal("RESET").parse(confirmation);
-    await seedWorkspace(true);
+    const user = await getCurrentUser();
+    await seedWorkspace(true, user.id);
     return null;
   });
 }

@@ -14,7 +14,7 @@ export default defineConfig({
     viewport: { width: 1440, height: 1000 },
   },
   webServer: {
-    command: "npm run test:e2e:server",
+    command: "node --import tsx scripts/e2e-server.ts",
     url: "http://127.0.0.1:3100/workspace",
     reuseExistingServer: false,
     timeout: 120000,

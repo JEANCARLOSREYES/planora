@@ -1,12 +1,11 @@
 import { db } from "@/lib/db";
+import { getCurrentUser } from "./current-user";
 
 export async function getWorkspace() {
-  const workspace = await db.workspace.findFirst({
-    orderBy: { createdAt: "asc" },
+  const user = await getCurrentUser();
+  return db.workspace.upsert({
+    where: { ownerId: user.id },
+    create: { ownerId: user.id, name: "My Workspace" },
+    update: {},
   });
-  if (!workspace)
-    throw new Error(
-      "Your workspace is not initialized. Run npm run db:setup, then reload.",
-    );
-  return workspace;
 }

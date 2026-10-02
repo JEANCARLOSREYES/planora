@@ -2,12 +2,14 @@
 
 **Plan your work. Organize your life.**
 
-Planora is a complete local workspace for rich-text notes, nested pages, tasks, and task databases. It combines a thoughtfully designed interface with a typed, validated backend and a relational SQLite database. It runs on your computer, without an account, API key, or paid service.
+Planora is an account-based workspace for rich-text notes, nested pages, tasks, and task collections. It combines a thoughtfully designed interface with a typed, validated backend and a relational SQLite database. Registration and login give each user a separate workspace. The account release is being prepared for hosting; the existing static portfolio demo is not the live account application.
 
 Built to demonstrate full-stack TypeScript engineering: server-rendered routing, data modeling, transactional mutations, optimistic interaction, rich-text persistence, accessibility, and automated testing.
 
 ## Features
 
+- **Accounts:** separate registration and login pages, hosted email verification and password recovery, password changes, session revocation, workspace exports, and account deletion.
+- **Private workspaces:** server-side ownership checks on reads and writes; new accounts start empty rather than receiving another user's existing data.
 - **Workspace dashboard:** recently edited and created pages, favorites, upcoming and overdue tasks, and progress calculated from actual records.
 - **Nested pages:** create, rename, move, duplicate complete subtrees, reorder siblings, favorite, and delete. Choose an emoji and one of five original gradient covers.
 - **Rich-text editor:** paragraphs, three heading levels, bold, italic, underline, strike, inline code, code blocks, links, quotes, dividers, ordered and bulleted lists, and nested checklists.
@@ -102,15 +104,15 @@ The default production build uses Next.js's supported Webpack builder. Developme
 
 ## Database
 
-| Model       | Purpose and relationships                                                                                                         |
-| ----------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| `Workspace` | Owns pages, tasks, tags, and databases; provides the boundary for future membership/authentication                                |
-| `Page`      | Self-referencing parent/children tree; JSON content, searchable plain text, icon, cover, favorite, position, revision, timestamps |
-| `Task`      | Workspace record with status, priority, due date, completion timestamp, optional database, and many tags                          |
-| `Database`  | Named task collection; deleting it keeps its records in general tasks                                                             |
-| `Tag`       | Workspace-scoped unique name; many-to-many relation to tasks                                                                      |
+| Model       | Purpose and relationships                                                                                                                        |
+| ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `Workspace` | Belongs to one account and owns its pages, tasks, tags, and collections; older unowned workspaces are preserved but inaccessible to new accounts |
+| `Page`      | Self-referencing parent/children tree; JSON content, searchable plain text, icon, cover, favorite, position, revision, timestamps                |
+| `Task`      | Workspace record with status, priority, due date, completion timestamp, optional database, and many tags                                         |
+| `Database`  | Named task collection; deleting it keeps its records in general tasks                                                                            |
+| `Tag`       | Workspace-scoped unique name; many-to-many relation to tasks                                                                                     |
 
-Indexes support workspace queries, parent/position ordering, favorites, recently updated content, task status/deadline, and collection membership. Favorites are a page property in the single-user version.
+The `User`, `Account`, `Session`, `Verification`, and `RateLimit` models support authentication. Indexes support account/workspace ownership, parent/position ordering, favorites, recently updated content, task status/deadline, and collection membership.
 
 SQLite data lives at `prisma/dev.db` by default and is never committed. To back it up, stop the app and copy the database file. Keep the backup private if your workspace contains personal information.
 
@@ -131,9 +133,9 @@ npm run db:setup
 npm run dev
 ```
 
-Open [Planora locally](http://127.0.0.1:3000/workspace).
+Open [Planora locally](http://127.0.0.1:3000) and create an account.
 
-`db:setup` generates the Prisma client, applies checked-in migrations, and seeds the workspace. Seeding is **idempotent**: running it again leaves existing data intact. To intentionally replace all data, use **Settings → Reset demo** and type `RESET`.
+`db:setup` generates the Prisma client, applies checked-in migrations, and seeds an unowned legacy sample workspace. New accounts start empty. Seeding is **idempotent**: running it again leaves existing data intact. **Settings → Reset demo**, followed by `RESET`, intentionally replaces only the signed-in account's workspace with sample content. Existing unowned data is never silently transferred to the first person registering.
 
 If your npm version blocks dependency install scripts, review and approve the required packages, then rebuild them:
 
@@ -163,11 +165,17 @@ Commit the generated migration and schema together. New installations should use
 
 ## Environment Variables
 
-| Variable       | Default                | Purpose                                     |
-| -------------- | ---------------------- | ------------------------------------------- |
-| `DATABASE_URL` | `file:./prisma/dev.db` | SQLite path relative to the repository root |
+| Variable             | Default                  | Purpose                                                     |
+| -------------------- | ------------------------ | ----------------------------------------------------------- |
+| `DATABASE_URL`       | `file:./prisma/dev.db`   | SQLite path relative to the repository root                 |
+| `TURSO_DATABASE_URL` | None                     | Optional hosted SQLite endpoint (`libsql://…`)              |
+| `TURSO_AUTH_TOKEN`   | None                     | Private token for the hosted database                       |
+| `BETTER_AUTH_URL`    | Loopback for development | Exact application origin; explicitly required in production |
+| `BETTER_AUTH_SECRET` | Temporary local secret   | Stable, randomly generated session-signing secret           |
+| `RESEND_API_KEY`     | None                     | Verification and password-recovery delivery                 |
+| `AUTH_EMAIL_FROM`    | None                     | Verified account-email sender                               |
 
-`.env.example` contains a local file URL, not a credential. `.env`, SQLite databases, generated Prisma code, and build outputs are ignored. No API keys are needed. Inter is bundled locally; the application does not fetch fonts or decorative assets at runtime.
+Set `BETTER_AUTH_URL` to the exact application origin and `BETTER_AUTH_SECRET` to a securely generated value of at least 32 characters. Local loopback previews can run without email delivery, but sessions using an automatically generated secret stop working when the server restarts. Hosted account initialization requires HTTPS, a strong secret, `RESEND_API_KEY`, and a verified `AUTH_EMAIL_FROM`. No AI API key is required; AI is proposal-only. `.env`, SQLite databases, generated Prisma code, and build outputs are ignored. Inter is bundled locally.
 
 ## Running the Application
 
@@ -197,9 +205,9 @@ On macOS, after installation, double-click **Start Planora.command** to reopen t
 
 ### Authentication and deployment scope
 
-**Authentication is not implemented in version 1.** Planora is a single-user, locally hosted portfolio application. Everyone who can reach its server shares the workspace. The supplied start commands bind to the loopback interface.
+Authentication uses Better Auth with database-backed sessions and rate limits. Hosted accounts require verified email; loopback previews allow registration without verification to make local testing possible. Workspace access is checked on the server, including APIs and mutations. Notes are not end-to-end encrypted, and database operators can access stored content.
 
-Do not expose the app to an untrusted network without adding authentication, workspace membership checks, and a deployment-specific security review. Workspace ownership is centralized in the server layer to make that evolution straightforward. SQLite requires a persistent filesystem; an ephemeral/serverless deployment needs a different persistence strategy.
+Do not invite public users before configuring persistent/cloud storage, real email delivery, trusted proxy behavior, backup recovery, and the final privacy notice. Local SQLite requires a persistent filesystem and must not be deployed as writable storage on an ephemeral/serverless host. See [the launch checklist](docs/LIVE-LAUNCH.md).
 
 ## Testing
 
@@ -223,7 +231,7 @@ npm run test:e2e
 
 Playwright starts the production application on **port 3100**, migrates and seeds a disposable database inside `.e2e/`, and leaves `prisma/dev.db` untouched. Tests cover complete page/task workflows, slash commands, autosave after reload, board dragging, calendar editing, templates, search, themes, settings, mobile navigation, accessibility, and guarded reset. Reports and failure traces are ignored by Git.
 
-The verified suite contains **29 unit/integration tests and 12 browser workflows**. Browser coverage includes native editor block dragging, save retries, saving during navigation, concurrent-tab draft recovery, repeated task search, and accessibility checks in both themes. These checks passed alongside TypeScript, lint, formatting, and the production build on September 6, 2026. Automated accessibility checks complement, rather than replace, manual usability review.
+The original release contained 29 unit/integration tests and 12 browser workflows. The account release adds real authentication-handler tests and browser registration, logout, export, unauthorized-access, and cross-account tests. Run the commands above for the current results; old CI runs do not verify this release. Hosted verification/recovery tests mock email delivery and do not prove a production email provider is configured. Automated accessibility checks complement, rather than replace, manual usability review.
 
 To regenerate the README screenshots from the disposable demo after a production build, run `UPDATE_SCREENSHOTS=1 npm run test:e2e` on macOS/Linux. The optional flag captures screenshots only after the reset workflow has restored clean demo content.
 
@@ -233,9 +241,9 @@ npm run format       # Format source and documentation
 
 ## Current Limitations
 
-- One local workspace and one user; no authentication, sharing, or realtime collaboration.
+- One private workspace per account; no shared workspaces or realtime collaboration.
 - Databases are collections of tasks with fixed properties, rather than arbitrary custom schemas.
-- No trash, uploads, image attachments, comments, reminders, or cloud synchronization.
+- No trash, uploads, image attachments, comments, or reminders. Cross-device persistence requires a configured live backend; the static demo does not synchronize.
 - Covers are original gradient visuals. There are no remote image dependencies.
 - Search uses indexed workspace scopes and bounded results with SQL substring matching; it is not a full-text search engine.
 - The task screen loads its current collection in memory for filtering. Large workspaces would benefit from server pagination and virtualized rows.

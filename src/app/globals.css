@@ -2795,7 +2795,7 @@ kbd {
 }
 .calendar-day.today .calendar-day-header > span {
   color: #fff;
-  background: var(--accent);
+  background: #6551c8;
   border-radius: 50%;
 }
 .calendar-day-header > button {

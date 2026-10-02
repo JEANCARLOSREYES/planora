@@ -1,6 +1,7 @@
 import { mkdirSync, rmSync } from "node:fs";
 import { resolve } from "node:path";
 import { spawnSync, spawn } from "node:child_process";
+import { randomBytes } from "node:crypto";
 
 const directory = resolve(".e2e");
 mkdirSync(directory, { recursive: true });
@@ -11,10 +12,16 @@ const env = {
   ...process.env,
   DATABASE_URL: `file:${database}`,
   NEXT_TELEMETRY_DISABLED: "1",
+  BETTER_AUTH_URL: "http://127.0.0.1:3100",
+  BETTER_AUTH_SECRET: randomBytes(32).toString("hex"),
+  RESEND_API_KEY: "",
+  AUTH_EMAIL_FROM: "",
+  TURSO_DATABASE_URL: "",
+  TURSO_AUTH_TOKEN: "",
 };
 for (const args of [
   ["node_modules/prisma/build/index.js", "migrate", "deploy"],
-  ["node_modules/tsx/dist/cli.mjs", "prisma/seed.ts"],
+  ["node_modules/tsx/dist/cli.mjs", "scripts/e2e-seed.ts"],
 ]) {
   const result = spawnSync(process.execPath, args, { env, stdio: "inherit" });
   if (result.status !== 0) process.exit(result.status ?? 1);

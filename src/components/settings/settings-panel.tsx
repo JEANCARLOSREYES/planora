@@ -167,15 +167,15 @@ export function SettingsPanel({ workspaceName }: { workspaceName: string }) {
           </span>
           <div>
             <h2>Your data</h2>
-            <p>Your pages and tasks are stored in a local SQLite database.</p>
+            <p>Your pages and tasks belong to your own workspace.</p>
           </div>
         </div>
         <div className="reset-data-card">
           <div>
             <h3>Start fresh with demo content</h3>
             <p>
-              Replace every page, task, tag, and database with the original demo
-              workspace.
+              Replace the pages, tasks, tags, and collections in your workspace
+              with sample content. Other accounts are not affected.
             </p>
           </div>
           <Button

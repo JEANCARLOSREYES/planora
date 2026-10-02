@@ -1,0 +1,223 @@
+.auth-page {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: 32px 20px;
+  background: var(--bg, #f4f5fb);
+}
+.auth-card {
+  width: min(100%, 480px);
+  padding: clamp(24px, 5vw, 40px);
+  background: var(--surface, #fff);
+  border: 1px solid var(--border, #e2e4ef);
+  border-radius: 20px;
+  box-shadow: 0 16px 64px #2020500a;
+}
+.auth-brand {
+  display: block;
+  font-size: 28px;
+  font-weight: 750;
+  text-decoration: none;
+  color: var(--accent-text);
+  margin-bottom: 32px;
+}
+.auth-brand span {
+  display: block;
+  font-size: 14px;
+  font-weight: 400;
+  margin-top: 8px;
+  color: var(--muted);
+}
+.auth-card h1 {
+  font-size: clamp(26px, 4vw, 34px);
+  line-height: 1.2;
+  margin-bottom: 14px;
+}
+.auth-card p {
+  font-size: 16px;
+  line-height: 1.6;
+  margin: 12px 0 20px;
+}
+.auth-card form {
+  display: grid;
+  gap: 14px;
+  margin-top: 24px;
+}
+.auth-card label {
+  display: grid;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+}
+.auth-card input {
+  width: 100%;
+  min-height: 46px;
+  font-size: 16px;
+  padding: 10px 12px;
+  border: 1px solid var(--border, #d8dbea);
+  border-radius: 8px;
+  background: var(--surface, #fff);
+  color: inherit;
+}
+.auth-card .auth-hint {
+  font-size: 14px;
+  margin: 0;
+}
+.auth-text-button {
+  background: none;
+  border: 0;
+  padding: 4px 0;
+  color: var(--accent-text);
+  cursor: pointer;
+  text-align: left;
+  font-size: 14px;
+}
+.auth-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-top: 24px;
+  align-items: center;
+  font-size: 14px;
+}
+.auth-error {
+  color: var(--danger);
+}
+.auth-message {
+  padding: 16px;
+  border: 1px solid var(--border, #ddd);
+  border-radius: 8px;
+  line-height: 1.6;
+}
+.privacy-copy {
+  width: min(100%, 720px);
+}
+.privacy-copy h2 {
+  margin-top: 28px;
+  font-size: 20px;
+}
+.auth-account {
+  padding-block: 32px;
+}
+.auth-account details {
+  margin-block: 24px;
+}
+.auth-account summary {
+  cursor: pointer;
+}
+.auth-account input {
+  font-size: 16px;
+}
+
+.landing-page {
+  max-width: 1160px;
+  margin: auto;
+  padding: 28px clamp(20px, 5vw, 64px);
+}
+.landing-nav,
+.landing-nav nav,
+.landing-actions,
+.landing-footer {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+.landing-nav,
+.landing-footer {
+  justify-content: space-between;
+}
+.landing-nav .auth-brand {
+  margin: 0;
+}
+.landing-nav a,
+.landing-actions a,
+.landing-footer a {
+  text-decoration: none;
+}
+.landing-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 14px 20px;
+  border-radius: 10px;
+  color: #fff;
+  background: #6551c8;
+  font-weight: 600;
+}
+.landing-cta:hover {
+  background: #5440b6;
+}
+.landing-hero {
+  padding: clamp(64px, 10vw, 120px) 0 64px;
+}
+.landing-eyebrow {
+  color: var(--accent-text);
+  font-weight: 600;
+}
+.landing-hero h1 {
+  font-size: clamp(40px, 6vw, 68px);
+  line-height: 1.12;
+  letter-spacing: -2px;
+  margin: 24px 0;
+}
+.landing-hero h1 span {
+  color: var(--accent-text);
+}
+.landing-hero > p:not(.landing-eyebrow):not(.landing-detail) {
+  max-width: 580px;
+  font-size: 20px;
+  line-height: 1.7;
+  color: var(--muted);
+}
+.landing-actions {
+  margin-top: 32px;
+}
+.landing-detail {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 14px;
+  margin-top: 24px;
+}
+.landing-features {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+.landing-features article {
+  padding: 28px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--soft);
+}
+.landing-features svg {
+  color: var(--accent-text);
+}
+.landing-features h2 {
+  font-size: 21px;
+  margin: 20px 0 12px;
+}
+.landing-features p {
+  color: var(--muted);
+  line-height: 1.7;
+}
+.landing-footer {
+  margin-top: 72px;
+  padding-block: 24px;
+  border-top: 1px solid var(--border);
+  font-size: 14px;
+  color: var(--muted);
+}
+@media (max-width: 700px) {
+  .landing-features {
+    grid-template-columns: 1fr;
+  }
+  .landing-nav nav {
+    gap: 14px;
+  }
+  .landing-detail {
+    align-items: flex-start;
+  }
+}

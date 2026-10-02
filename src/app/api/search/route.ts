@@ -1,13 +1,14 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getWorkspace } from "@/lib/server/workspace";
+import { WorkspaceError } from "@/lib/server/errors";
 
 export async function GET(request: NextRequest) {
   const query =
     request.nextUrl.searchParams.get("q")?.trim().slice(0, 200) ?? "";
-  if (!query) return NextResponse.json({ pages: [], tasks: [], tags: [] });
   try {
     const workspace = await getWorkspace();
+    if (!query) return NextResponse.json({ pages: [], tasks: [], tags: [] });
     const [pages, tasks, tags] = await Promise.all([
       db.page.findMany({
         where: {
@@ -60,10 +61,10 @@ export async function GET(request: NextRequest) {
       tasks,
       tags,
     });
-  } catch {
+  } catch (error) {
     return NextResponse.json(
       { error: "Search is unavailable. Please try again." },
-      { status: 500 },
+      { status: error instanceof WorkspaceError ? error.status : 500 },
     );
   }
 }

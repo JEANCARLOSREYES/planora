@@ -4,13 +4,17 @@ import { templateContent, welcomeContent } from "@/lib/templates";
 import { extractText } from "@/lib/validation";
 import type { Prisma } from "@/generated/prisma/client";
 
-export async function seedWorkspace(reset = false) {
+export async function seedWorkspace(
+  reset = false,
+  ownerId: string | null = null,
+) {
   return db.$transaction(async (tx) => {
-    const existing = await tx.workspace.findFirst();
+    const existing = await tx.workspace.findFirst({ where: { ownerId } });
     if (existing && !reset) return existing;
-    if (reset) await tx.workspace.deleteMany();
+    if (reset && existing)
+      await tx.workspace.delete({ where: { id: existing.id } });
     const workspace = await tx.workspace.create({
-      data: { name: "My Workspace" },
+      data: { name: "My Workspace", ownerId },
     });
     const notes = [
       {

@@ -1,11 +1,25 @@
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { mkdtempSync, readFileSync, readdirSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import Database from "better-sqlite3";
 
+const identity = vi.hoisted(() => ({ id: "alice", anonymous: false }));
+vi.mock("@/lib/server/current-user", () => ({
+  getCurrentUser: async () => {
+    if (identity.anonymous) throw new Error("Please log in to continue.");
+    return {
+      id: identity.id,
+      name: identity.id,
+      email: `${identity.id}@example.com`,
+    };
+  },
+}));
+
 const directory = mkdtempSync(join(tmpdir(), "planora-test-"));
 process.env.DATABASE_URL = `file:${join(directory, "test.db")}`;
+process.env.TURSO_DATABASE_URL = "";
+process.env.TURSO_AUTH_TOKEN = "";
 const { db } = await import("@/lib/db");
 const { seedWorkspace } = await import("@/lib/server/seed");
 const {
@@ -31,7 +45,14 @@ beforeAll(async () => {
       ),
     );
   sqlite.close();
-  await seedWorkspace();
+  await db.user.createMany({
+    data: ["alice", "bob"].map((id) => ({
+      id,
+      name: id,
+      email: `${id}@example.com`,
+    })),
+  });
+  await seedWorkspace(false, "alice");
 });
 afterAll(async () => {
   await db.$disconnect();
@@ -41,7 +62,7 @@ afterAll(async () => {
 describe("SQLite-backed workspace operations", () => {
   it("seeds idempotently without overwriting user data", async () => {
     const before = await db.page.count();
-    await seedWorkspace();
+    await seedWorkspace(false, "alice");
     expect(await db.page.count()).toBe(before);
   });
   it("creates, moves, favorites, duplicates, and safely deletes page subtrees", async () => {
@@ -145,5 +166,84 @@ describe("SQLite-backed workspace operations", () => {
       databaseId: null,
       title: "Keep me",
     });
+  });
+});
+
+describe("Account workspace isolation", () => {
+  it("rejects another user's page IDs, parent IDs, task IDs, and database IDs", async () => {
+    identity.id = "alice";
+    const page = await createPage({ title: "Alice private note" });
+    const task = await createTask({ title: "Alice private task" });
+    const alice = await db.workspace.findUniqueOrThrow({
+      where: { ownerId: "alice" },
+    });
+    const collection = await db.database.create({
+      data: { name: "Alice collection", workspaceId: alice.id },
+    });
+    identity.id = "bob";
+    try {
+      await expect(
+        updatePage(page.id, { title: "Intrusion" }),
+      ).rejects.toThrow();
+      await expect(deletePage(page.id)).rejects.toThrow();
+      await expect(duplicatePage(page.id)).rejects.toThrow();
+      await expect(
+        savePageContent(page.id, {
+          content: { type: "doc", content: [] },
+          revision: 0,
+        }),
+      ).rejects.toThrow();
+      await expect(
+        createPage({ title: "Intrusion", parentId: page.id }),
+      ).rejects.toThrow();
+      await expect(
+        updateTask(task.id, { title: "Intrusion" }),
+      ).rejects.toThrow();
+      await expect(deleteTask(task.id)).rejects.toThrow();
+      await expect(
+        createTask({ title: "Intrusion", databaseId: collection.id }),
+      ).rejects.toThrow();
+      expect(
+        (await db.page.findUniqueOrThrow({ where: { id: page.id } })).title,
+      ).toBe("Alice private note");
+    } finally {
+      identity.id = "alice";
+    }
+  });
+  it("resets only the requesting account and preserves other users and legacy data", async () => {
+    const legacy = await seedWorkspace();
+    const alice = await db.workspace.findUniqueOrThrow({
+      where: { ownerId: "alice" },
+    });
+    await seedWorkspace(true, "bob");
+    expect(
+      await db.workspace.findUnique({ where: { id: alice.id } }),
+    ).not.toBeNull();
+    expect(
+      await db.workspace.findUnique({ where: { id: legacy.id } }),
+    ).not.toBeNull();
+  });
+  it("rejects operations without an authenticated account", async () => {
+    identity.anonymous = true;
+    try {
+      await expect(createPage({ title: "Anonymous" })).rejects.toThrow(
+        "log in",
+      );
+    } finally {
+      identity.anonymous = false;
+    }
+  });
+  it("cascades account deletion only to its own workspace", async () => {
+    const alice = await db.workspace.findUniqueOrThrow({
+      where: { ownerId: "alice" },
+    });
+    const bob = await db.workspace.findUniqueOrThrow({
+      where: { ownerId: "bob" },
+    });
+    await db.user.delete({ where: { id: "bob" } });
+    expect(await db.workspace.findUnique({ where: { id: bob.id } })).toBeNull();
+    expect(
+      await db.workspace.findUnique({ where: { id: alice.id } }),
+    ).not.toBeNull();
   });
 });

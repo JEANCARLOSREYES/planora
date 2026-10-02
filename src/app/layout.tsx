@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Providers } from "@/components/providers";
 import "@fontsource-variable/inter";
 import "./globals.css";
+import "./auth.css";
 
 export const metadata: Metadata = {
   title: {
@@ -9,7 +10,7 @@ export const metadata: Metadata = {
     template: "%s · Planora",
   },
   description:
-    "A thoughtful local workspace for notes, tasks, and everything you are working toward.",
+    "Your own workspace for notes, tasks, and everything you are working toward.",
   robots: { index: false, follow: false },
 };
 export default function RootLayout({

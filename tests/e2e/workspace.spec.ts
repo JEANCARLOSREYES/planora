@@ -1,4 +1,4 @@
-import { test, expect, type Page } from "@playwright/test";
+import { test, expect, type Page, type BrowserContext } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 
 async function createPage(page: Page, title: string) {
@@ -15,7 +15,20 @@ async function createPage(page: Page, title: string) {
     page.getByRole("textbox", { name: "Page content" }),
   ).toBeVisible();
 }
-test.beforeEach(async ({ page }) => {
+let sessionCookies: Awaited<ReturnType<BrowserContext["cookies"]>>;
+test.beforeAll(async ({ request }) => {
+  const response = await request.post("/api/auth/sign-in/email", {
+    headers: { Origin: "http://127.0.0.1:3100" },
+    data: {
+      email: "planner@example.com",
+      password: "Planora-test-passphrase-2026",
+    },
+  });
+  expect(response.ok()).toBeTruthy();
+  sessionCookies = (await request.storageState()).cookies;
+});
+test.beforeEach(async ({ page, context }) => {
+  await context.addCookies(sessionCookies);
   await page.goto("/workspace");
 });
 
