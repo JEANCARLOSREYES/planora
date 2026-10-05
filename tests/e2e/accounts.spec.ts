@@ -25,10 +25,19 @@ test("registration, empty private workspace, export, logout, and login", async (
   await page.getByLabel("Password", { exact: true }).fill(password);
   await page.getByRole("button", { name: "Log in", exact: true }).click();
   await expect(page).toHaveURL(/\/workspace$/);
+  await page.goto("/workspace/onboarding");
+  await page
+    .getByLabel("Workspace name", { exact: true })
+    .fill("My private plans");
+  await page
+    .getByRole("button", { name: "Open my workspace", exact: true })
+    .click();
+  await expect(page).toHaveURL(/\/workspace$/);
   const exported = await context.request.get("/api/account/export");
   expect(exported.ok()).toBeTruthy();
   expect(exported.headers()["cache-control"]).toBe("no-store");
   const data = await exported.json();
+  expect(data.workspace.name).toBe("My private plans");
   expect(data.workspace.pages).toEqual([]);
   expect(data.workspace.tasks).toEqual([]);
   await page.goto("/workspace/settings");

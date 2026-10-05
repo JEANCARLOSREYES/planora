@@ -1,5 +1,13 @@
 # Account release verification — October 2, 2026
 
+## October 5 update
+
+- Google-only hosted mode and new-user onboarding implemented; local password mode preserved.
+- 52 unit/integration tests pass. Google tests use real signatures with disposable test keys and mocked Google public-key delivery, not live Google accounts.
+- Production build, TypeScript, ESLint and formatting pass. All 16 browser workflows pass, including eight accessible palette combinations; newly added workspace onboarding also passes its browser rerun.
+- Vercel Hobby project and free production address `myplanora.vercel.app` configured. Turso remote schema verified (11 tables); production database and Google credentials stored privately in Vercel.
+- No production deployment or real hosted Google sign-in has yet been verified. No billing enabled, domain purchased, or AI activated. Earlier statements below describe the October 2 snapshot, not current cloud setup.
+
 ## Implemented locally
 
 - Public welcome page; separate registration/login/recovery pages.

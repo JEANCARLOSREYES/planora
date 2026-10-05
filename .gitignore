@@ -8,6 +8,7 @@ test-results/
 .e2e/
 *.tsbuildinfo
 .env
+.planora-auth-secret
 .env.*
 !.env.example
 *.db

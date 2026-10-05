@@ -17,10 +17,21 @@ import { toast } from "sonner";
 import { updateWorkspaceAction, resetWorkspaceAction } from "@/app/actions";
 import { Button } from "@/components/ui/button";
 import { Dialog } from "@/components/ui/dialog";
+import {
+  useAppearance,
+  saveAppearance,
+  defaultAppearance,
+  type Appearance,
+} from "@/components/appearance";
 
 const subscribe = () => () => {};
 export function SettingsPanel({ workspaceName }: { workspaceName: string }) {
   const { theme, setTheme } = useTheme();
+  const appearance = useAppearance();
+  function changeAppearance(patch: Partial<Appearance>) {
+    if (!saveAppearance({ ...appearance, ...patch }))
+      toast.error("Your browser could not save appearance settings.");
+  }
   const mounted = useSyncExternalStore(
     subscribe,
     () => true,
@@ -87,6 +98,93 @@ export function SettingsPanel({ workspaceName }: { workspaceName: string }) {
               </span>
             </button>
           ))}
+        </div>
+        <div className="customization-controls">
+          <h3>Color palette</h3>
+          <div
+            className="palette-options"
+            role="group"
+            aria-label="Color palette"
+          >
+            {(["lavender", "ocean", "forest", "rose"] as const).map(
+              (palette) => (
+                <button
+                  key={palette}
+                  type="button"
+                  data-palette={palette}
+                  aria-pressed={mounted && appearance.palette === palette}
+                  onClick={() => changeAppearance({ palette })}
+                >
+                  <span className="palette-swatch" aria-hidden="true" />
+                  {palette.charAt(0).toUpperCase() + palette.slice(1)}
+                  {mounted && appearance.palette === palette && (
+                    <Check size={16} />
+                  )}
+                </button>
+              ),
+            )}
+          </div>
+          <div className="appearance-selects">
+            <label>
+              Reading font
+              <select
+                aria-label="Reading font"
+                value={appearance.font}
+                onChange={(e) =>
+                  changeAppearance({
+                    font: e.target.value as Appearance["font"],
+                  })
+                }
+              >
+                <option value="sans">Modern sans</option>
+                <option value="serif">Bookish serif</option>
+                <option value="mono">Focused mono</option>
+              </select>
+            </label>
+            <label>
+              Reading size
+              <select
+                aria-label="Reading size"
+                value={appearance.size}
+                onChange={(e) =>
+                  changeAppearance({
+                    size: e.target.value as Appearance["size"],
+                  })
+                }
+              >
+                <option value="standard">Standard</option>
+                <option value="large">Large</option>
+              </select>
+            </label>
+            <label>
+              Motion
+              <select
+                aria-label="Motion"
+                value={appearance.motion}
+                onChange={(e) =>
+                  changeAppearance({
+                    motion: e.target.value as Appearance["motion"],
+                  })
+                }
+              >
+                <option value="system">Follow device preference</option>
+                <option value="reduced">Reduce motion</option>
+              </select>
+            </label>
+          </div>
+          <p className="appearance-note">
+            Saved on this browser, not synced between devices. Reading options
+            apply to your page editor.
+          </p>
+          <Button
+            onClick={() => {
+              if (saveAppearance({ ...defaultAppearance })) setTheme("system");
+              else
+                toast.error("Your browser could not save appearance settings.");
+            }}
+          >
+            Restore default appearance
+          </Button>
         </div>
       </section>
       <section className="settings-section">

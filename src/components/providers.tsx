@@ -2,6 +2,7 @@
 import { ThemeProvider, useTheme } from "next-themes";
 import { Toaster } from "sonner";
 import type { ReactNode } from "react";
+import { AppearanceEffects } from "@/components/appearance";
 export function Providers({ children }: { children: ReactNode }) {
   return (
     <ThemeProvider
@@ -10,6 +11,7 @@ export function Providers({ children }: { children: ReactNode }) {
       enableSystem
       disableTransitionOnChange
     >
+      <AppearanceEffects />
       {children}
       <WorkspaceToaster />
     </ThemeProvider>

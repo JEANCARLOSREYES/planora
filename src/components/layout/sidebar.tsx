@@ -277,7 +277,7 @@ export function Sidebar({
         </button>
         <div className="sidebar-footer">
           <span className="local-dot" />
-          All yours. Stored locally.
+          Private to your account.
         </div>
       </div>
     </>

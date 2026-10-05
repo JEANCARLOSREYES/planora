@@ -31,6 +31,7 @@ const directory = mkdtempSync(join(tmpdir(), "planora-auth-test-"));
 process.env.DATABASE_URL = `file:${join(directory, "test.db")}`;
 process.env.TURSO_DATABASE_URL = "";
 process.env.TURSO_AUTH_TOKEN = "";
+process.env.AUTH_MODE = "password";
 delete process.env.VERCEL;
 process.env.BETTER_AUTH_URL = "https://planora.example";
 process.env.BETTER_AUTH_SECRET =

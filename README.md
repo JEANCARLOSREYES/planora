@@ -8,7 +8,7 @@ Built to demonstrate full-stack TypeScript engineering: server-rendered routing,
 
 ## Features
 
-- **Accounts:** separate registration and login pages, hosted email verification and password recovery, password changes, session revocation, workspace exports, and account deletion.
+- **Accounts:** separate registration and login pages, Google-only hosted sign-in with new-user onboarding, local password accounts, session revocation, workspace exports, and account deletion.
 - **Private workspaces:** server-side ownership checks on reads and writes; new accounts start empty rather than receiving another user's existing data.
 - **Workspace dashboard:** recently edited and created pages, favorites, upcoming and overdue tasks, and progress calculated from actual records.
 - **Nested pages:** create, rename, move, duplicate complete subtrees, reorder siblings, favorite, and delete. Choose an emoji and one of five original gradient covers.
@@ -175,7 +175,7 @@ Commit the generated migration and schema together. New installations should use
 | `RESEND_API_KEY`     | None                     | Verification and password-recovery delivery                 |
 | `AUTH_EMAIL_FROM`    | None                     | Verified account-email sender                               |
 
-Set `BETTER_AUTH_URL` to the exact application origin and `BETTER_AUTH_SECRET` to a securely generated value of at least 32 characters. Local loopback previews can run without email delivery, but sessions using an automatically generated secret stop working when the server restarts. Hosted account initialization requires HTTPS, a strong secret, `RESEND_API_KEY`, and a verified `AUTH_EMAIL_FROM`. No AI API key is required; AI is proposal-only. `.env`, SQLite databases, generated Prisma code, and build outputs are ignored. Inter is bundled locally.
+Set `BETTER_AUTH_URL` to the exact application origin and `BETTER_AUTH_SECRET` to a securely generated value of at least 32 characters. Local loopback previews can run without email delivery; a private ignored `.planora-auth-secret` keeps local sessions stable across restarts. Hosted accounts require HTTPS and a strong secret. Set `AUTH_MODE=google` plus private `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` for the free launch; password endpoints are blocked in this mode. Google's authorized callback must exactly match `BETTER_AUTH_URL/api/auth/callback/google`. Hosted password mode instead requires `RESEND_API_KEY` and a verified `AUTH_EMAIL_FROM`. No AI API key is required; AI is proposal-only. `.env`, SQLite databases, generated Prisma code, and build outputs are ignored. Inter is bundled locally.
 
 ## Running the Application
 
@@ -205,9 +205,9 @@ On macOS, after installation, double-click **Start Planora.command** to reopen t
 
 ### Authentication and deployment scope
 
-Authentication uses Better Auth with database-backed sessions and rate limits. Hosted accounts require verified email; loopback previews allow registration without verification to make local testing possible. Workspace access is checked on the server, including APIs and mutations. Notes are not end-to-end encrypted, and database operators can access stored content.
+Authentication uses Better Auth with database-backed sessions and rate limits. Google-only mode accepts verified Google identities, encrypts access tokens, discards identity tokens after validation, and requires a session less than five minutes old for account deletion. Password mode requires verified email when hosted; loopback previews allow registration without verification for local testing. Workspace access is checked on the server, including APIs and mutations. Notes are not end-to-end encrypted, and database operators can access stored content.
 
-Do not invite public users before configuring persistent/cloud storage, real email delivery, trusted proxy behavior, backup recovery, and the final privacy notice. Local SQLite requires a persistent filesystem and must not be deployed as writable storage on an ephemeral/serverless host. See [the launch checklist](docs/LIVE-LAUNCH.md).
+Do not invite public users before configuring persistent/cloud storage, Google OAuth (or verified email delivery for password mode), trusted proxy behavior, backup recovery, and the final privacy notice. Local SQLite requires a persistent filesystem and must not be deployed as writable storage on an ephemeral/serverless host. See [the launch checklist](docs/LIVE-LAUNCH.md).
 
 ## Testing
 

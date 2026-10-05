@@ -47,6 +47,124 @@
   --color-border: var(--border);
   --color-primary: var(--accent);
 }
+[data-palette="ocean"] {
+  --accent: #126a9a;
+  --accent-hover: #0e567e;
+  --accent-text: #126a9a;
+  --accent-soft: #e6f2fa;
+}
+[data-palette="forest"] {
+  --accent: #28734f;
+  --accent-hover: #205d40;
+  --accent-text: #28734f;
+  --accent-soft: #e7f4ec;
+}
+[data-palette="rose"] {
+  --accent: #ac3863;
+  --accent-hover: #902b51;
+  --accent-text: #ac3863;
+  --accent-soft: #fbeaf1;
+}
+.dark[data-palette="ocean"] {
+  --accent: #82caf3;
+  --accent-hover: #a5dbfa;
+  --accent-text: #a5dbfa;
+  --accent-soft: #203747;
+}
+.dark[data-palette="forest"] {
+  --accent: #8bd6ab;
+  --accent-hover: #b0e7c6;
+  --accent-text: #b0e7c6;
+  --accent-soft: #223b30;
+}
+.dark[data-palette="rose"] {
+  --accent: #f5a0bd;
+  --accent-hover: #ffc0d5;
+  --accent-text: #ffc0d5;
+  --accent-soft: #432835;
+}
+[data-reading-font="serif"] .planora-editor {
+  font-family: Georgia, "Times New Roman", serif;
+}
+[data-reading-font="mono"] .planora-editor {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+[data-reading-size="large"] .planora-editor {
+  font-size: 20px;
+}
+.customization-controls {
+  margin-top: 28px;
+}
+.palette-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 16px 0 24px;
+}
+.palette-options button {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 12px 16px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+}
+.palette-options button[aria-pressed="true"] {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.palette-swatch {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+.palette-options button[data-palette="lavender"] .palette-swatch {
+  background: #6552dc;
+}
+.appearance-selects {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
+}
+.appearance-selects label {
+  display: grid;
+  gap: 8px;
+}
+.appearance-selects select {
+  padding: 10px;
+  min-width: 0;
+  width: 100%;
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+.appearance-note {
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.6;
+  margin: 18px 0;
+}
+html[data-motion="reduced"] *,
+html[data-motion="reduced"] *::before,
+html[data-motion="reduced"] *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
 * {
   box-sizing: border-box;
 }

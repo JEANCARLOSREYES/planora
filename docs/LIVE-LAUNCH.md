@@ -7,7 +7,8 @@ the static demo and describe it as a hosted account service.
 
 - Registration, login, private empty workspaces, and a public welcome page.
 - Rich notes, nested pages, templates, tasks, collections, boards, and calendar.
-- Password recovery, verified emails, password changes, session controls.
+- Google sign-in, verified Google identities, new-user onboarding, session controls.
+- Local password accounts remain supported; hosted password mode needs an email sender.
 - Workspace export, account deletion, and an honest privacy notice.
 - No AI assistant or AI billing in this release.
 
@@ -43,11 +44,16 @@ and review later upgrades individually. The cloud adapter is tested against a
 disposable local libSQL database; remote connectivity, provider behavior, and
 redeployment persistence still need staging verification.
 
-Email delivery is a separate launch requirement. The current integration uses
-Resend and requires a verified sender. Its test sender is not a general public
-verification service. If no sender domain is available, choose and verify an
-alternative email/identity arrangement before inviting users; do not disable
-verification or pretend password recovery works.
+The owner approved Google-only authentication on October 5 to avoid buying an
+email-sender domain. Set `AUTH_MODE=google`, configure a Web application OAuth
+client and its exact HTTPS `/api/auth/callback/google` redirect in Google Cloud,
+and store `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` privately in Vercel.
+Only email, profile, and openid scopes are requested. Do not enable billing,
+Google AI, or extra Google API permissions. Google manages account recovery;
+Planora password signup/login/reset endpoints are disabled in this mode.
+Google consent configuration must permit external public users rather than
+remaining restricted to test users before a public launch is described as ready.
+Hosted password mode still requires Resend with a verified sender.
 
 ## Configuration and acceptance gates
 
@@ -55,13 +61,13 @@ verification or pretend password recovery works.
 2. Configure the cloud database privately in the host's environment settings.
 3. Apply reviewed migrations to the new remote database. Back up before upgrades.
 4. Set the exact HTTPS `BETTER_AUTH_URL` and a generated `BETTER_AUTH_SECRET`.
-5. Configure and verify real email delivery; never put keys in GitHub or chat.
+5. Configure and verify Google OAuth; never put keys in GitHub or chat.
 6. Configure trusted edge-proxy IP headers, test rate limits behind that proxy,
    and use platform-level abuse limits as well as application limits.
 7. Run typecheck, lint, formatting, tests, production build, and browser tests.
 8. Finalize provider disclosures, privacy contact, backup retention/deletion,
    and a tested database restore procedure.
-9. In staging, test two real accounts, verification email arrival, password reset,
+9. In staging, test two real Google accounts, login, onboarding, logout,
    cross-account URLs, exports, deletion, and persistence across redeployment.
 10. Publish only after these checks pass; report the actual verified HTTPS URL.
 

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
+import type { AuthMode } from "@/lib/auth-mode";
 
 type Mode = "login" | "register" | "forgot-password" | "reset-password";
 const titles: Record<Mode, string> = {
@@ -15,9 +16,11 @@ const titles: Record<Mode, string> = {
 export function AuthForm({
   mode,
   emailAvailable = false,
+  authMode = "password",
 }: {
   mode: Mode;
   emailAvailable?: boolean;
+  authMode?: AuthMode;
 }) {
   const router = useRouter();
   const params = useSearchParams();
@@ -40,7 +43,54 @@ export function AuthForm({
               ? "Log in to your private workspace."
               : "Use your account email to recover access."}
         </p>
-        {message ? (
+        {authMode === "google" ? (
+          <div>
+            <p>
+              Sign in securely with Google. Planora never receives your Google
+              password and does not request access to your Gmail, Drive, or
+              calendar.
+            </p>
+            {(mode === "forgot-password" || mode === "reset-password") && (
+              <p>
+                Recover your Google account through Google, then return here to
+                sign in.
+              </p>
+            )}
+            {(error || params.has("error")) && (
+              <p role="alert" className="auth-error">
+                {error || "Google sign-in was not completed. Please try again."}
+              </p>
+            )}
+            <Button
+              variant="primary"
+              disabled={busy}
+              onClick={async () => {
+                setBusy(true);
+                setError("");
+                try {
+                  const result = await authClient.signIn.social({
+                    provider: "google",
+                    callbackURL: "/workspace",
+                    newUserCallbackURL: "/workspace/onboarding",
+                    errorCallbackURL: "/login?error=google",
+                  });
+                  if (result.error) throw new Error();
+                } catch {
+                  setError(
+                    "Google sign-in could not start. Please try again later.",
+                  );
+                  setBusy(false);
+                }
+              }}
+            >
+              {busy ? "Opening Google…" : "Continue with Google"}
+            </Button>
+            <p className="auth-hint">
+              Your workspace is private to your account.{" "}
+              <Link href="/privacy">How Planora handles your data</Link>.
+            </p>
+          </div>
+        ) : message ? (
           <div role="status" className="auth-message">
             {message}
           </div>
@@ -269,7 +319,9 @@ export function AuthForm({
           {mode === "login" && (
             <>
               <Link href="/register">Create an account</Link>
-              <Link href="/forgot-password">Forgot password?</Link>
+              {authMode === "password" && (
+                <Link href="/forgot-password">Forgot password?</Link>
+              )}
             </>
           )}
           {mode === "reset-password" && (

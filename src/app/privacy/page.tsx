@@ -9,10 +9,11 @@ export default function PrivacyPage() {
         </Link>
         <h1>Your account and your data</h1>
         <p>
-          This development version stores your name, email, password hash,
-          notes, tasks, and workspace settings in the application database.
-          Passwords are hashed by the authentication library; plaintext
-          passwords are not stored.
+          Planora stores your name, email, notes, tasks, and workspace settings.
+          Google sign-in supplies your basic profile and verified email, never
+          your Google password. It requests no Gmail, Drive, or calendar access.
+          Login tokens are encrypted before database storage. Local password
+          accounts store a password hash, not a plaintext password.
         </p>
         <h2>Private workspaces</h2>
         <p>
@@ -25,7 +26,8 @@ export default function PrivacyPage() {
           An essential HTTP-only cookie keeps you logged in. Sessions expire
           after seven days. Session records can include an IP address and
           browser identifier for security. Verification and password recovery
-          emails use the configured email provider.
+          emails are available only in password mode with an email provider.
+          Google accounts use Google account recovery instead.
         </p>
         <h2>Device drafts</h2>
         <p>
@@ -35,9 +37,11 @@ export default function PrivacyPage() {
         </p>
         <h2>Your controls</h2>
         <p>
-          Account settings let you export your workspace, change your password,
-          sign out other sessions, or delete your account and its workspace.
-          Exports contain private content: keep downloaded files safe.
+          Account settings let you export your workspace, sign out other
+          sessions, or delete your account and its workspace. Exports contain
+          private content: keep downloaded files safe. Google users manage
+          passwords through Google; deleting a Planora account requires a
+          sign-in from within the last five minutes.
         </p>
         <h2>AI features</h2>
         <p>

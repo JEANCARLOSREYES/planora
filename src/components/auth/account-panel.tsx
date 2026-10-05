@@ -3,7 +3,14 @@ import { useState } from "react";
 import { authClient } from "@/lib/auth-client";
 import { clearPlanoraDrafts } from "@/lib/client-privacy";
 import { Button } from "@/components/ui/button";
-export function AccountPanel({ email }: { email: string }) {
+import type { AuthMode } from "@/lib/auth-mode";
+export function AccountPanel({
+  email,
+  authMode = "password",
+}: {
+  email: string;
+  authMode?: AuthMode;
+}) {
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
@@ -50,85 +57,98 @@ export function AccountPanel({ email }: { email: string }) {
         </Button>
         <a href="/api/account/export">Export my workspace</a>
       </div>
-      <form
-        className="workspace-settings-form"
-        onSubmit={async (event) => {
-          event.preventDefault();
-          const form = event.currentTarget;
-          const data = new FormData(form);
-          setBusy(true);
-          setError("");
-          setMessage("");
-          if (data.get("newPassword") !== data.get("confirmPassword")) {
-            setError("Passwords do not match.");
-            setBusy(false);
-            return;
-          }
-          try {
-            const result = await authClient.changePassword({
-              currentPassword: String(data.get("currentPassword")),
-              newPassword: String(data.get("newPassword")),
-              revokeOtherSessions: true,
-            });
-            if (result.error) {
-              setError(
-                "Could not update your password. Check your current password and try again.",
-              );
+      {authMode === "google" ? (
+        <p>
+          Your login is managed by Google. Change your password or recover
+          access in your Google account settings.
+        </p>
+      ) : (
+        <form
+          className="workspace-settings-form"
+          onSubmit={async (event) => {
+            event.preventDefault();
+            const form = event.currentTarget;
+            const data = new FormData(form);
+            setBusy(true);
+            setError("");
+            setMessage("");
+            if (data.get("newPassword") !== data.get("confirmPassword")) {
+              setError("Passwords do not match.");
+              setBusy(false);
               return;
             }
-            form.reset();
-            setMessage(
-              "Password updated. Other sessions have been signed out.",
-            );
-          } catch {
-            setError("Could not connect. Try again.");
-          } finally {
-            setBusy(false);
-          }
-        }}
-      >
-        <label>
-          Current password
-          <input
-            name="currentPassword"
-            type="password"
-            autoComplete="current-password"
-            required
-            maxLength={128}
-          />
-        </label>
-        <label>
-          New password
-          <input
-            name="newPassword"
-            type="password"
-            autoComplete="new-password"
-            required
-            minLength={12}
-            maxLength={128}
-          />
-        </label>
-        <label>
-          Confirm new password
-          <input
-            name="confirmPassword"
-            type="password"
-            autoComplete="new-password"
-            required
-            minLength={12}
-            maxLength={128}
-          />
-        </label>
-        <Button type="submit" disabled={busy}>
-          Change password
-        </Button>
-      </form>
+            try {
+              const result = await authClient.changePassword({
+                currentPassword: String(data.get("currentPassword")),
+                newPassword: String(data.get("newPassword")),
+                revokeOtherSessions: true,
+              });
+              if (result.error) {
+                setError(
+                  "Could not update your password. Check your current password and try again.",
+                );
+                return;
+              }
+              form.reset();
+              setMessage(
+                "Password updated. Other sessions have been signed out.",
+              );
+            } catch {
+              setError("Could not connect. Try again.");
+            } finally {
+              setBusy(false);
+            }
+          }}
+        >
+          <label>
+            Current password
+            <input
+              name="currentPassword"
+              type="password"
+              autoComplete="current-password"
+              required
+              maxLength={128}
+            />
+          </label>
+          <label>
+            New password
+            <input
+              name="newPassword"
+              type="password"
+              autoComplete="new-password"
+              required
+              minLength={12}
+              maxLength={128}
+            />
+          </label>
+          <label>
+            Confirm new password
+            <input
+              name="confirmPassword"
+              type="password"
+              autoComplete="new-password"
+              required
+              minLength={12}
+              maxLength={128}
+            />
+          </label>
+          <Button type="submit" disabled={busy}>
+            Change password
+          </Button>
+        </form>
+      )}
       <details>
         <summary>Delete account</summary>
         <p>
           This permanently deletes your account and all pages, tasks, and
           collections in your workspace. Export anything you want to keep first.
         </p>
+        {authMode === "google" && (
+          <p>
+            For security, sign in within the last five minutes before deleting.
+            If needed, log out and sign in with Google again, then return here.
+          </p>
+        )}
         <form
           className="workspace-settings-form"
           onSubmit={async (event) => {
@@ -141,12 +161,18 @@ export function AccountPanel({ email }: { email: string }) {
             setBusy(true);
             setError("");
             try {
-              const result = await authClient.deleteUser({
-                password: String(data.get("password")),
-              });
+              const result = await authClient.deleteUser(
+                authMode === "google"
+                  ? {}
+                  : {
+                      password: String(data.get("password")),
+                    },
+              );
               if (result.error) {
                 setError(
-                  "Could not delete your account. Check your password and try again.",
+                  authMode === "google"
+                    ? "Could not delete your account. Log out, sign in with Google again, and retry within five minutes."
+                    : "Could not delete your account. Check your password and try again.",
                 );
                 return;
               }
@@ -161,16 +187,18 @@ export function AccountPanel({ email }: { email: string }) {
             }
           }}
         >
-          <label>
-            Account password
-            <input
-              name="password"
-              type="password"
-              autoComplete="current-password"
-              required
-              maxLength={128}
-            />
-          </label>
+          {authMode === "password" && (
+            <label>
+              Account password
+              <input
+                name="password"
+                type="password"
+                autoComplete="current-password"
+                required
+                maxLength={128}
+              />
+            </label>
+          )}
           <label>
             Type DELETE
             <input name="confirmation" required pattern="DELETE" />

@@ -32,6 +32,50 @@ test.beforeEach(async ({ page, context }) => {
   await page.goto("/workspace");
 });
 
+test("appearance palettes, reading controls and reset persist", async ({
+  page,
+}) => {
+  await page.goto("/workspace/settings");
+  await page.getByRole("button", { name: "Ocean", exact: true }).click();
+  await page.getByLabel("Reading font", { exact: true }).selectOption("serif");
+  await page.getByLabel("Reading size", { exact: true }).selectOption("large");
+  await page.getByLabel("Motion", { exact: true }).selectOption("reduced");
+  await page.reload();
+  await expect(page.locator("html")).toHaveAttribute("data-palette", "ocean");
+  await expect(page.getByLabel("Reading font", { exact: true })).toHaveValue(
+    "serif",
+  );
+  await expect(page.locator("html")).toHaveAttribute(
+    "data-reading-size",
+    "large",
+  );
+  await expect(page.locator("html")).toHaveAttribute("data-motion", "reduced");
+  for (const mode of ["Light", "Dark"]) {
+    await page.getByRole("button", { name: mode, exact: true }).click();
+    for (const palette of ["Lavender", "Ocean", "Forest", "Rose"]) {
+      await page.getByRole("button", { name: palette, exact: true }).click();
+      const results = await new AxeBuilder({ page })
+        .withTags(["wcag2a", "wcag2aa"])
+        .analyze();
+      expect(results.violations).toEqual([]);
+    }
+  }
+  await page.screenshot({
+    path: "test-results/appearance-rose.png",
+    fullPage: true,
+  });
+  await page
+    .getByRole("button", { name: "Restore default appearance" })
+    .click();
+  await expect(page.locator("html")).toHaveAttribute(
+    "data-palette",
+    "lavender",
+  );
+  await expect(page.getByLabel("Reading font", { exact: true })).toHaveValue(
+    "sans",
+  );
+});
+
 test("pages, rich text, slash commands, autosave, favorites, and hierarchy", async ({
   page,
 }) => {
